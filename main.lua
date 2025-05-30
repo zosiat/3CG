@@ -13,16 +13,6 @@ local Card = require 'src/Card'
 function love.load()
     Card.loadData()
     
-    local zeus = Card.getByName("Zeus")
-    if zeus then
-        print("Loaded card:", zeus.name)
-        print("Cost:", zeus.cost)
-        print("Power:", zeus.power)
-        print("Effect:", zeus.text)
-    else
-        print("Card not found.")
-    end
-    
     love.window.setTitle("Trial by Card")
     love.graphics.setFont(love.graphics.newFont(24))
 
@@ -50,5 +40,9 @@ function love.keypressed(key)
     end
 
     gStateMachine:keypressed(key)
+end
+
+function love.mousepressed(x, y, button)
+    gStateMachine:mousepressed(x, y, button)
 end
 

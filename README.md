@@ -37,3 +37,6 @@ Used for UI updates when the card data changes.
 - **Playing Cards Pack:** [https://kenney.nl/assets/playing-cards-pack](https://kenney.nl/assets/playing-cards-pack)  
   All card sprites were sourced from Kenney assets.  
   No music, SFX, fonts, or shaders were used. All other visual and code assets were created by me.
+  - **Libraries:**
+  Uses the dkjson.lua library 
+  [https://github.com/LuaDist/dkjson/blob/master/dkjson.lua]

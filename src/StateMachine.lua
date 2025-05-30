@@ -1,8 +1,3 @@
--- author: Zosia Trela
--- StateMachine.lua
--- 5/30/25
--- CMPM 121
-
 local StateMachine = {}
 
 function StateMachine:new(states)
@@ -38,6 +33,12 @@ end
 function StateMachine:keypressed(key)
     if self.current and self.current.keypressed then
         self.current:keypressed(key)
+    end
+end
+
+function StateMachine:mousepressed(x, y, button)
+    if self.current and self.current.mousepressed then
+        self.current:mousepressed(x, y, button)
     end
 end
 
