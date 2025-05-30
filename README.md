@@ -8,8 +8,14 @@ WORK IN PROGRESS! USING EXTENSION
 
 ## Programming Patterns Used
 
-- **Object-Oriented Programming (OOP)**  
-
+- **State Pattern**  
+Used to manage the game phases, such as the title state, play state, and credits.
+- **Event Queue Pattern**
+Used for queueing and using card effects such as the "when revealed" and "end of turn" effects.
+- **Flyweight Pattern**
+Used to manage future card sprites.
+- **Dirt Flag**
+Used for UI updates when the card data changes.
 ---
 
 ## Peer Feedback
