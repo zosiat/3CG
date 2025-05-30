@@ -27,7 +27,7 @@ end
 
 function TitleState:keypressed(key)
     if key == 'return' or key == 'enter' then
-        -- gStateMachine:change('play')
+        gStateMachine:change('play')
         print("Game start logic here")
     end
 end
