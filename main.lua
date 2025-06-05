@@ -10,12 +10,18 @@ local PlayState = require 'states/PlayState'
 local CreditState = require 'states/CreditState'
 local Card = require 'src/Card'
 
+Fonts = {}
+
 function love.load()
     Card.loadData()
     
-    love.window.setTitle("Trial by Card")
-    love.graphics.setFont(love.graphics.newFont(24))
+    Fonts.large = love.graphics.newFont(24) -- for UI and titles
+    Fonts.small = love.graphics.newFont(12) -- for card text
 
+    love.graphics.setFont(Fonts.large) -- set default font
+
+    love.window.setTitle("Trial by Card")
+    
     -- set up state machine
     gStateMachine = StateMachine {
         ['title'] = function() return TitleState() end,
