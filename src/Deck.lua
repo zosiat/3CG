@@ -31,6 +31,13 @@ function Deck:shuffle()
     end
 end
 
+function Deck:populate(count)
+    self.cards = {}
+    for i = 1, count do
+        table.insert(self.cards, Card.data[i])
+    end
+end
+
 function Deck:drawToHand(n)
     for i = 1, n do
         local drawn = table.remove(self.cards, 1)

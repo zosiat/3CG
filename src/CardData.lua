@@ -5,7 +5,7 @@
 
 local json = require("json")
 
-local CardData = {}         -- ✅ Use a distinct name
+local CardData = {}
 
 CardData.data = {}
 
