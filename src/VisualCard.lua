@@ -40,4 +40,9 @@ function VisualCard:draw()
     love.graphics.printf(self.text, self.x + 5, self.y + 80, self.width - 10, "left")
 end
 
+function VisualCard:isClicked(mx, my)
+    return mx >= self.x and mx <= self.x + self.width and
+           my >= self.y and my <= self.y + self.height
+end
+
 return VisualCard

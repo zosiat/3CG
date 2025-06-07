@@ -5,6 +5,8 @@
 
 local Card = require 'src/Card'
 local VisualCard = require 'src/VisualCard'
+local Grabber = require 'src/Grabber'
+local Deck = require 'src/Deck'
 
 local PlayState = {}
 
@@ -15,11 +17,11 @@ function PlayState:new()
     return o
 end
 
-local Deck = require 'src/Deck'
-
 function PlayState:enter()
     self.timer = 0
     self.turn = 1
+    
+    self.grabber = Grabber:new()
     
     -- for locations and card slots
     self.board = {
@@ -38,7 +40,6 @@ function PlayState:enter()
     }
     
     -- initialize board with 3 locations
-    self.board = {}
     for i = 1, 3 do
         self.board[i] = {
             playerSlots = { nil, nil, nil, nil },
@@ -73,15 +74,61 @@ function PlayState:enter()
     
     self.aiDeck:drawToHand(3)
     self.aiHandVisuals = self.aiDeck:getVisualHand(100)
+    
+    -- draw all hand cards except selectedCard
+    for _, card in ipairs(self.handVisuals) do
+        if card ~= self.selectedCard then
+            card:draw()
+        end
+    end
+
+    -- draw dragged card last
+    if self.selectedCard then
+        self.selectedCard:draw()
+    end
 
 end
+
+function PlayState:trySnapToPlayerSlot(card)
+    for _, lane in ipairs(self.board) do
+        for _, slot in ipairs(lane.playerSlots) do
+            if not slot.card then
+                -- Snap if card is close enough
+                local dx = (card.x + card.width / 2) - (slot.x + card.width / 2)
+                local dy = (card.y + card.height / 2) - (slot.y + card.height / 2)
+                local dist = math.sqrt(dx * dx + dy * dy)
+                if dist < 80 then -- SNAP RANGE
+                    card.x = slot.x
+                    card.y = slot.y
+                    slot.card = card
+                    return true
+                end
+            end
+        end
+    end
+    return false
+end
+
 
 function PlayState:update(dt)
     -- placeholder update logic
     self.timer = self.timer + dt
+    
+    local mx, my = love.mouse.getPosition()
+    if self.grabber then
+        self.grabber:update(mx, my)
+    end
 end
 
 function PlayState:draw()
+  
+    if self.grabber.heldCard then
+      self.grabber.heldCard:draw()
+    end
+--      -- draw title
+--    love.graphics.setFont(Fonts.large)
+--    love.graphics.printf("Welcome to Trial by Card!", 0, 100, screenWidth, "center")
+
     local screenWidth = love.graphics.getWidth()
     local screenHeight = love.graphics.getHeight()
     local locationWidth = screenWidth / 3
@@ -90,9 +137,12 @@ function PlayState:draw()
     local slotHeight = 160
     local slotSpacing = 10
 
-    -- draw title
+    -- draw turn counter
+    local turnText = "Turn: " .. self.turn
+    local textWidth = Fonts.large:getWidth(turnText)
     love.graphics.setFont(Fonts.large)
-    love.graphics.printf("Welcome to Trial by Card!", 0, 100, screenWidth, "center")
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.print(turnText, screenWidth - textWidth - 20, 20)
 
     -- draw board locations (slots + cards)
     for i, location in ipairs(self.board) do
@@ -122,11 +172,10 @@ function PlayState:draw()
 
     -- draw submit button
     local b = self.submitButton
-    love.graphics.setFont(Fonts.large)
-    love.graphics.setColor(0.2, 0.6, 0.8)
-    love.graphics.rectangle("fill", b.x, b.y, b.width, b.height)
+    love.graphics.setColor(0.2, 0.6, 0.2)
+    love.graphics.rectangle("fill", b.x, b.y, b.width, b.height, 8, 8)
     love.graphics.setColor(1, 1, 1)
-    love.graphics.printf(b.text, b.x, b.y + 12, b.width, "center")
+    love.graphics.printf(b.text, b.x, b.y + 10, b.width, "center")
 
     -- draw hand cards
     love.graphics.setFont(Fonts.small)
@@ -138,12 +187,10 @@ function PlayState:draw()
     for _, card in ipairs(self.aiHandVisuals) do
         card:draw()
     end
-
-    -- draw turn counter
-    local turnText = "Turn: " .. self.turn
-    local textWidth = Fonts.large:getWidth(turnText)
-    love.graphics.setFont(Fonts.large)
-    love.graphics.printf(turnText, screenWidth - textWidth - 10, 10, textWidth, "left")
+    
+    if self.selectedCard then
+      self.selectedCard:draw()
+    end
 end
 
 function PlayState:checkSlotSelection(x, y)
@@ -224,7 +271,6 @@ function PlayState:tryPlaceCardInSlot(x, y)
     return false -- no slot was selected
 end
 
-
 function PlayState:keypressed(key)
     if key == "escape" then
         love.event.quit()
@@ -234,23 +280,18 @@ end
 function PlayState:mousepressed(x, y, button)
     if button ~= 1 then return end
 
-    -- if a card in hand was clicked
-    for i, card in ipairs(self.handVisuals) do
-        if card:isClicked(x, y) then
-            self.selectedCard = card
-            return -- stop checking once a card is selected
-        end
+    local selected = self.grabber:mousepressed(x, y, self.handVisuals)
+    if selected then
+        self.selectedCard = selected
+        return
     end
 
-    -- place the selected card into a board slot
-    if self.selectedCard then
-        if self:tryPlaceCardInSlot(x, y) then
-            self.selectedCard = nil -- clear selection after placement
-            return
-        end
+    if self.selectedCard and self:tryPlaceCardInSlot(x, y) then
+        self.selectedCard = nil
+        self.grabber:mousereleased(x, y)
+        return
     end
 
-    -- if the Submit button was clicked
     local b = self.submitButton
     if x >= b.x and x <= b.x + b.width and y >= b.y and y <= b.y + b.height then
         self.turn = self.turn + 1
@@ -258,6 +299,32 @@ function PlayState:mousepressed(x, y, button)
     end
 end
 
+function PlayState:mousereleased(x, y, button)
+    if button ~= 1 then return end
+
+    print("PlayState: mouse released") -- debug
+
+    if self.grabber.heldCard and self:tryPlaceCardInSlot(x, y) then
+        self.handVisuals = self:removeCard(self.handVisuals, self.grabber.heldCard)
+        self.selectedCard = nil
+    end
+
+    self.grabber:mousereleased(x, y)
+end
+
+function PlayState:removeCard(list, cardToRemove)
+    local newList = {}
+    for _, c in ipairs(list) do
+        if c ~= cardToRemove then
+            table.insert(newList, c)
+        end
+    end
+    return newList
+end
+
+function PlayState:mousemoved(x, y, dx, dy)
+    self.grabber:mousemoved(x, y)
+end
 
 return function()
     return PlayState:new()
