@@ -20,6 +20,7 @@ end
 function PlayState:enter()
     self.timer = 0
     self.turn = 1
+    self.mana = self.turn -- start mana equals current turn
     
     self.grabber = Grabber:new()
     
@@ -143,6 +144,25 @@ function PlayState:draw()
     love.graphics.setFont(Fonts.large)
     love.graphics.setColor(1, 1, 1)
     love.graphics.print(turnText, screenWidth - textWidth - 20, 20)
+    
+    -- draw mana counter
+    local manaText = "Mana: " .. self.mana
+    local manaTextWidth = Fonts.large:getWidth(manaText)
+    love.graphics.setFont(Fonts.large)
+    love.graphics.setColor(0.4, 0.8, 1) -- Light blue for mana
+    love.graphics.print(manaText, screenWidth - manaTextWidth - 20, 60)
+    
+    -- draw AI deck pile (top-left)
+    VisualCard:drawCardBack(20, 20, "AI")
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.print(#self.aiDeck.cards .. " left", 25, 190)
+
+    -- draw Player deck pile (bottom-right)
+    local screenWidth = love.graphics.getWidth()
+    local screenHeight = love.graphics.getHeight()
+    VisualCard:drawCardBack(screenWidth - 300, screenHeight - 180, "You")
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.print(#self.deck.cards .. " left", screenWidth - 300, screenHeight - 200)
 
     -- draw board locations (slots + cards)
     for i, location in ipairs(self.board) do

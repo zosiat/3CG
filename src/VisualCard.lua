@@ -45,4 +45,17 @@ function VisualCard:isClicked(mx, my)
            my >= self.y and my <= self.y + self.height
 end
 
+function VisualCard:drawCardBack(x, y, label)
+    -- card back rectangle
+    love.graphics.setColor(0.2, 0.2, 0.5) -- dark blue-ish back
+    love.graphics.rectangle("fill", x, y, 120, 160, 6, 6)
+
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.rectangle("line", x, y, 120, 160, 6, 6)
+
+    -- draw deck label (e.g. "AI", "Player")
+    love.graphics.setFont(Fonts.small)
+    love.graphics.printf(label, x, y + 65, 120, "center")
+end
+
 return VisualCard
