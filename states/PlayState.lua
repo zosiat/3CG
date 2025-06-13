@@ -7,6 +7,7 @@ local Card = require 'src/Card'
 local VisualCard = require 'src/VisualCard'
 local Grabber = require 'src/Grabber'
 local Deck = require 'src/Deck'
+local TurnManager = require "src.TurnManager"
 
 local PlayState = {}
 
@@ -21,6 +22,7 @@ function PlayState:enter()
     self.timer = 0
     self.turn = 1
     self.mana = self.turn -- start mana equals current turn
+    self.points = 0;
     
     self.grabber = Grabber:new()
     
@@ -90,6 +92,7 @@ function PlayState:enter()
 
 end
 
+-- TODO: Fix snapping mechanic
 function PlayState:trySnapToPlayerSlot(card)
     for _, lane in ipairs(self.board) do
         for _, slot in ipairs(lane.playerSlots) do
@@ -109,7 +112,6 @@ function PlayState:trySnapToPlayerSlot(card)
     end
     return false
 end
-
 
 function PlayState:update(dt)
     -- placeholder update logic
@@ -151,6 +153,13 @@ function PlayState:draw()
     love.graphics.setFont(Fonts.large)
     love.graphics.setColor(0.4, 0.8, 1) -- Light blue for mana
     love.graphics.print(manaText, screenWidth - manaTextWidth - 20, 60)
+    
+    -- draw player points
+    local pointsText = "Points: " .. self.points
+    local pointsTextWidth = Fonts.large:getWidth(manaText)
+    love.graphics.setFont(Fonts.large)
+    love.graphics.setColor(0.2, 0.6, 0.2) 
+    love.graphics.print(pointsText, screenWidth - pointsTextWidth - 20, 100)
     
     -- draw AI deck pile (top-left)
     VisualCard:drawCardBack(20, 20, "AI")
@@ -256,39 +265,27 @@ end
 
 -- helper function for card placement
 function PlayState:tryPlaceCardInSlot(x, y)
-    local screenWidth = love.graphics.getWidth()
-    local screenHeight = love.graphics.getHeight()
-    local locationWidth = screenWidth / 3
-    local slotWidth = 70
-    local slotHeight = 100
-    local slotSpacing = 10
+    for laneIndex, lane in ipairs(self.board) do
+        for slotIndex, slot in ipairs(lane.playerSlots) do
+            if not slot.card and x >= slot.x and x <= slot.x + 120 and
+               y >= slot.y and y <= slot.y + 160 then
 
-    for locIndex, location in ipairs(self.board) do
-        local xOffset = (locIndex - 1) * locationWidth + (locationWidth - (slotWidth * 4 + slotSpacing * 3)) / 2
+                -- place the card
+                slot.card = self.grabber.heldCard
 
-        for slotIndex = 1, 4 do
-            local slotX = xOffset + (slotIndex - 1) * (slotWidth + slotSpacing)
-            local slotY = screenHeight - 200
+                -- store location index on the card (optional, useful for logic later)
+                self.grabber.heldCard.lane = laneIndex
+                self.grabber.heldCard.slot = slotIndex
 
-            if x >= slotX and x <= slotX + slotWidth and y >= slotY and y <= slotY + slotHeight then
-                if not location.playerSlots[slotIndex] then
-                    location.playerSlots[slotIndex] = self.selectedCard
+                -- debug
+                print("Card placed at lane:", laneIndex, "slot:", slotIndex)
+                print("Card name:", slot.card.name)
 
-                    -- remove the visual card from hand
-                    for i, card in ipairs(self.handVisuals) do
-                        if card == self.selectedCard then
-                            table.remove(self.handVisuals, i)
-                            break
-                        end
-                    end
-
-                    return true -- successfully placed
-                end
+                return true
             end
         end
     end
-
-    return false -- no slot was selected
+    return false
 end
 
 function PlayState:keypressed(key)
@@ -314,7 +311,7 @@ function PlayState:mousepressed(x, y, button)
 
     local b = self.submitButton
     if x >= b.x and x <= b.x + b.width and y >= b.y and y <= b.y + b.height then
-        self.turn = self.turn + 1
+        TurnManager:endTurn(self)
         print("Turn incremented! Current turn: " .. self.turn)
     end
 end
