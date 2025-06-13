@@ -22,17 +22,23 @@ function Grabber:update()
     end
 end
 
-function Grabber:mousepressed(x, y, handVisuals)
+function Grabber:mousepressed(x, y, handVisuals, currentMana)
     for _, card in ipairs(handVisuals) do
         if card:isClicked(x, y) then
-            self.heldCard = card
-            self.offsetX = x - card.x
-            self.offsetY = y - card.y
-            return card
+            if card.cost and currentMana >= card.cost then
+                self.heldCard = card
+                self.offsetX = x - card.x
+                self.offsetY = y - card.y
+                return card
+            else
+                print("Not enough mana to grab this card.")
+                return nil
+            end
         end
     end
     return nil
 end
+
 
 function Grabber:mousereleased(x, y)
     print("Grabber: releasing") -- debug

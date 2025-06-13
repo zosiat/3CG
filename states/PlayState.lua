@@ -267,8 +267,13 @@ end
 function PlayState:tryPlaceCardInSlot(x, y)
     for laneIndex, lane in ipairs(self.board) do
         for slotIndex, slot in ipairs(lane.playerSlots) do
-            if not slot.card and x >= slot.x and x <= slot.x + 120 and
-               y >= slot.y and y <= slot.y + 160 then
+            if not slot.card then
+              local cx = self.grabber.heldCard.x + self.grabber.heldCard.width / 2
+              local cy = self.grabber.heldCard.y + self.grabber.heldCard.height / 2
+
+              if cx >= slot.x and cx <= slot.x + 120 and
+                 cy >= slot.y and cy <= slot.y + 160 then
+              end
 
                 -- place the card
                 slot.card = self.grabber.heldCard
@@ -297,24 +302,44 @@ end
 function PlayState:mousepressed(x, y, button)
     if button ~= 1 then return end
 
-    local selected = self.grabber:mousepressed(x, y, self.handVisuals)
-    if selected then
-        self.selectedCard = selected
-        return
+    -- try to pick up a card (only if there's enough mana)
+    self.selectedCard = self.grabber:mousepressed(x, y, self.handVisuals, self.mana)
+
+    if self.selectedCard then
+        print("Selected card: " .. (self.selectedCard.name or "unknown"))
+        print("Card cost: " .. tostring(self.selectedCard.cost))
+        print("Current mana: " .. tostring(self.mana))
+
+        local placed = self:tryPlaceCardInSlot(x, y)
+        print("Was card placed successfully? " .. tostring(placed))
+
+        if placed then
+            -- only subtract mana if cost is valid
+            if self.selectedCard.cost and self.mana >= self.selectedCard.cost then
+                self.mana = self.mana - self.selectedCard.cost
+                print("Mana after placement: " .. tostring(self.mana))
+            else
+                print("No cost found or not enough mana when placing. This shouldn't happen.")
+            end
+
+            self.grabber:mousereleased(x, y)
+            self.selectedCard = nil
+            return
+        else
+            print("Card was selected but not placed.")
+        end
+    else
+        print("No card was selected (not enough mana or no card clicked).")
     end
 
-    if self.selectedCard and self:tryPlaceCardInSlot(x, y) then
-        self.selectedCard = nil
-        self.grabber:mousereleased(x, y)
-        return
-    end
-
+    -- check submit button
     local b = self.submitButton
     if x >= b.x and x <= b.x + b.width and y >= b.y and y <= b.y + b.height then
         TurnManager:endTurn(self)
         print("Turn incremented! Current turn: " .. self.turn)
     end
 end
+
 
 function PlayState:mousereleased(x, y, button)
     if button ~= 1 then return end
