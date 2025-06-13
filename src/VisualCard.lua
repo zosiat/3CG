@@ -38,6 +38,7 @@ function VisualCard:draw()
     love.graphics.printf("Cost: " .. self.cost, self.x + 5, self.y + 30, self.width - 10, "left")
     love.graphics.printf("Power: " .. self.power, self.x + 5, self.y + 50, self.width - 10, "left")
     love.graphics.printf(self.text, self.x + 5, self.y + 80, self.width - 10, "left")
+    
 end
 
 function VisualCard:isClicked(mx, my)

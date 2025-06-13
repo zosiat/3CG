@@ -50,6 +50,13 @@ function PlayState:enter()
             color = self:getLocationColor(i)
         }
     end
+    
+    --audio assets
+    self.cardGrabSound = love.audio.newSource("assets/kenney_interface-sounds/Audio/select_004.ogg", "static")
+        self.cardDropSound = love.audio.newSource("assets/kenney_interface-sounds/Audio/drop_003.ogg", "static")
+        self.SubmitSound = love.audio.newSource("assets/kenney_interface-sounds/Audio/click_001.ogg", "static")
+
+
 
     local screenW = love.graphics.getWidth()
     local screenH = love.graphics.getHeight()
@@ -306,51 +313,44 @@ function PlayState:mousepressed(x, y, button)
     self.selectedCard = self.grabber:mousepressed(x, y, self.handVisuals, self.mana)
 
     if self.selectedCard then
-        print("Selected card: " .. (self.selectedCard.name or "unknown"))
-        print("Card cost: " .. tostring(self.selectedCard.cost))
-        print("Current mana: " .. tostring(self.mana))
 
         local placed = self:tryPlaceCardInSlot(x, y)
-        print("Was card placed successfully? " .. tostring(placed))
+        
+        self.cardGrabSound:stop()
+        self.cardGrabSound:play()
 
         if placed then
             -- only subtract mana if cost is valid
             if self.selectedCard.cost and self.mana >= self.selectedCard.cost then
                 self.mana = self.mana - self.selectedCard.cost
-                print("Mana after placement: " .. tostring(self.mana))
-            else
-                print("No cost found or not enough mana when placing. This shouldn't happen.")
             end
 
             self.grabber:mousereleased(x, y)
             self.selectedCard = nil
             return
-        else
-            print("Card was selected but not placed.")
         end
-    else
-        print("No card was selected (not enough mana or no card clicked).")
     end
 
     -- check submit button
     local b = self.submitButton
     if x >= b.x and x <= b.x + b.width and y >= b.y and y <= b.y + b.height then
+        self.SubmitSound:stop()
+        self.SubmitSound:play()
         TurnManager:endTurn(self)
-        print("Turn incremented! Current turn: " .. self.turn)
     end
 end
 
 
 function PlayState:mousereleased(x, y, button)
-    if button ~= 1 then return end
-
-    print("PlayState: mouse released") -- debug
+    if button ~= 1 then
+      return end
 
     if self.grabber.heldCard and self:tryPlaceCardInSlot(x, y) then
         self.handVisuals = self:removeCard(self.handVisuals, self.grabber.heldCard)
         self.selectedCard = nil
+        self.cardDropSound:stop()
+        self.cardDropSound:play()
     end
-
     self.grabber:mousereleased(x, y)
 end
 

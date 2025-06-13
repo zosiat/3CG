@@ -38,8 +38,6 @@ function TurnManager:endTurn(playState)
     if playState.handVisuals and #playState.handVisuals < 7 then
       playState.deck:drawToHand(1)
       playState.handVisuals = playState.deck:getVisualHand(love.graphics.getHeight() - 200)
-    else
-      print("Cannot draw, hand already full.")
     end
     
     -- ai hand limit logic
@@ -51,6 +49,45 @@ function TurnManager:endTurn(playState)
     -- TODO: cards flip, winner flips over first
     -- TODO: add card effects, after 20 points take player to credit scene
     
+-- discard non-hand player cards
+    for i = #playState.handVisuals, 1, -1 do
+        local cardVis = playState.handVisuals[i]
+        if cardVis.y < love.graphics.getHeight() - 250 then
+
+            for j = #playState.deck.hand, 1, -1 do
+                if playState.deck.hand[j].name == cardVis.name then
+                    local discardedCard = table.remove(playState.deck.hand, j)
+                    table.insert(playState.deck.discard, discardedCard)
+                    break
+                end
+            end
+
+            table.remove(playState.handVisuals, i)
+        end
+    end
+
+    -- discard non-hand AI cards
+    for i = #playState.aiHandVisuals, 1, -1 do
+        local cardVis = playState.aiHandVisuals[i]
+        if cardVis.y > 250 then
+            print("Discarding AI card:", cardVis.name)
+
+            for j = #playState.aiDeck.hand, 1, -1 do
+                if playState.aiDeck.hand[j].name == cardVis.name then
+                    local discardedCard = table.remove(playState.aiDeck.hand, j)
+                    table.insert(playState.aiDeck.discard, discardedCard)
+                    break
+                end
+            end
+
+            table.remove(playState.aiHandVisuals, i)
+        end
+    end
+    
+
+
+
+
 end
 
 return TurnManager

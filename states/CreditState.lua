@@ -22,7 +22,7 @@ end
 
 function CreditsState:draw()
     love.graphics.printf("CREDITS", 0, 100, love.graphics.getWidth(), "center")
-    love.graphics.printf("Coming Soon...", 0, 150, love.graphics.getWidth(), "center")
+    love.graphics.printf("Audio Effects from Kenney Assets", 0, 150, love.graphics.getWidth(), "center")
     love.graphics.printf("Press Escape to Return", 0, 300, love.graphics.getWidth(), "center")
 end
 

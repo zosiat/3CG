@@ -9,10 +9,13 @@ local VisualCard = require 'src/VisualCard'
 local Deck = {}
 Deck.__index = Deck
 
+discardPile = {}
+
 function Deck:new()
     local o = {
         cards = {},
-        hand = {}
+        hand = {},
+        discard = {}
     }
     setmetatable(o, self)
 

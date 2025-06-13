@@ -30,9 +30,6 @@ function Grabber:mousepressed(x, y, handVisuals, currentMana)
                 self.offsetX = x - card.x
                 self.offsetY = y - card.y
                 return card
-            else
-                print("Not enough mana to grab this card.")
-                return nil
             end
         end
     end
@@ -41,7 +38,6 @@ end
 
 
 function Grabber:mousereleased(x, y)
-    print("Grabber: releasing") -- debug
 
     if self.heldCard then
         self.heldCard.state = 0
