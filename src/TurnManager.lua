@@ -41,6 +41,12 @@ function TurnManager:endTurn(playState)
     else
       print("Cannot draw, hand already full.")
     end
+    
+    -- ai hand limit logic
+    if playState.aiHandVisuals and #playState.aiHandVisuals < 7 then
+        playState.aiDeck:drawToHand(1)
+        playState.aiHandVisuals = playState.aiDeck:getVisualHand(100)
+    end
 
     -- TODO: cards flip, winner flips over first
     -- TODO: add card effects, after 20 points take player to credit scene
