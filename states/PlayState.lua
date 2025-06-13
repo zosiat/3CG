@@ -10,6 +10,12 @@ local Deck = require 'src/Deck'
 local TurnManager = require "src.TurnManager"
 
 local PlayState = {}
+local screenWidth, screenHeight
+
+function PlayState:setScreenSize()
+    screenWidth = love.graphics.getWidth()
+    screenHeight = love.graphics.getHeight()
+end
 
 function PlayState:new()
     local o = {}
@@ -19,6 +25,7 @@ function PlayState:new()
 end
 
 function PlayState:enter()
+    self:setScreenSize()
     self.timer = 0
     self.turn = 1
     self.mana = self.turn -- start mana equals current turn
@@ -56,14 +63,9 @@ function PlayState:enter()
         self.cardDropSound = love.audio.newSource("assets/kenney_interface-sounds/Audio/drop_003.ogg", "static")
         self.SubmitSound = love.audio.newSource("assets/kenney_interface-sounds/Audio/click_001.ogg", "static")
 
-
-
-    local screenW = love.graphics.getWidth()
-    local screenH = love.graphics.getHeight()
-
     self.submitButton = {
-        x = screenW - 120,
-        y = screenH - 50,
+        x = screenWidth - 120,
+        y = screenHeight - 50,
         width = 100,
         height = 40,
         text = "Submit"
@@ -139,8 +141,6 @@ function PlayState:draw()
 --    love.graphics.setFont(Fonts.large)
 --    love.graphics.printf("Welcome to Trial by Card!", 0, 100, screenWidth, "center")
 
-    local screenWidth = love.graphics.getWidth()
-    local screenHeight = love.graphics.getHeight()
     local locationWidth = screenWidth / 3
     -- slots are the same size as cards
     local slotWidth = 120
@@ -318,12 +318,13 @@ function PlayState:mousepressed(x, y, button)
         
         self.cardGrabSound:stop()
         self.cardGrabSound:play()
+        
+        -- only subtract mana if cost is valid
+        if self.selectedCard.cost and self.mana >= self.selectedCard.cost then
+          self.mana = self.mana - self.selectedCard.cost
+        end
 
         if placed then
-            -- only subtract mana if cost is valid
-            if self.selectedCard.cost and self.mana >= self.selectedCard.cost then
-                self.mana = self.mana - self.selectedCard.cost
-            end
 
             self.grabber:mousereleased(x, y)
             self.selectedCard = nil
