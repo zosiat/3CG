@@ -8,6 +8,7 @@ local StateMachine = require 'src/StateMachine'
 local TitleState = require 'states/TitleState'
 local PlayState = require 'states/PlayState'
 local CreditState = require 'states/CreditState'
+local LoseState = require 'states/LoseState'
 local Card = require 'src/Card'
 
 Fonts = {}
@@ -26,7 +27,9 @@ function love.load()
     gStateMachine = StateMachine {
         ['title'] = function() return TitleState() end,
         ['play'] = function() return PlayState() end,
-        ['credit'] = function() return CreditState() end
+        ['credit'] = function() return CreditState() end,
+        ['lose'] = function() return LoseState() end
+        
     }
 
     gStateMachine:change('title')

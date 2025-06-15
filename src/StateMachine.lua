@@ -22,6 +22,12 @@ function StateMachine:update(dt)
     if self.current and self.current.update then
         self.current:update(dt)
     end
+    
+    if self.points == 5 then
+    gStateMachine:change('credits')
+    elseif self.aipoints == 5 then
+        gStateMachine:change('lose')
+    end
 end
 
 function StateMachine:draw()

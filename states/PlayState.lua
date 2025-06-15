@@ -30,6 +30,7 @@ function PlayState:enter()
     self.turn = 1
     self.mana = self.turn -- start mana equals current turn
     self.points = 0;
+    self.aiPoints = 0
     
     self.grabber = Grabber:new()
     
@@ -60,8 +61,9 @@ function PlayState:enter()
     
     --audio assets
     self.cardGrabSound = love.audio.newSource("assets/kenney_interface-sounds/Audio/select_004.ogg", "static")
-        self.cardDropSound = love.audio.newSource("assets/kenney_interface-sounds/Audio/drop_003.ogg", "static")
-        self.SubmitSound = love.audio.newSource("assets/kenney_interface-sounds/Audio/click_001.ogg", "static")
+    self.cardDropSound = love.audio.newSource("assets/kenney_interface-sounds/Audio/drop_003.ogg", "static")
+    self.SubmitSound = love.audio.newSource("assets/kenney_interface-sounds/Audio/click_001.ogg", "static")
+    self.errorSound = love.audio.newSource("assets/kenney_interface-sounds/Audio/error_001.ogg", "static")
 
     self.submitButton = {
         x = screenWidth - 120,
@@ -130,6 +132,18 @@ function PlayState:update(dt)
     if self.grabber then
         self.grabber:update(mx, my)
     end
+    
+    -- game state change based on points
+    if self.points == 5 then
+        gStateMachine:change('credit')
+    end
+    
+    if self.aiPoints == 5 then
+        gStateMachine:change('lose')
+    end
+    
+    TurnManager:update(dt)
+
 end
 
 function PlayState:draw()
@@ -167,6 +181,13 @@ function PlayState:draw()
     love.graphics.setFont(Fonts.large)
     love.graphics.setColor(0.2, 0.6, 0.2) 
     love.graphics.print(pointsText, screenWidth - pointsTextWidth - 20, 100)
+    
+    -- draw AI points
+    local AIpointsText = "Enemy Points: " .. self.aiPoints
+    local AIpointsTextWidth = Fonts.large:getWidth(manaText)
+    love.graphics.setFont(Fonts.large)
+    love.graphics.setColor(1, 0.4, 0.4) 
+    love.graphics.print(AIpointsText, 180, 20)
     
     -- draw AI deck pile (top-left)
     VisualCard:drawCardBack(20, 20, "AI")
@@ -224,9 +245,16 @@ function PlayState:draw()
         card:draw()
     end
     
+    -- draw AI cards that have been placed
+    for _, card in ipairs(self.aiPlacedCards or {}) do
+        card:draw()
+    end
+
+    
     if self.selectedCard then
       self.selectedCard:draw()
     end
+    
 end
 
 function PlayState:checkSlotSelection(x, y)
@@ -325,7 +353,6 @@ function PlayState:mousepressed(x, y, button)
         end
 
         if placed then
-
             self.grabber:mousereleased(x, y)
             self.selectedCard = nil
             return
